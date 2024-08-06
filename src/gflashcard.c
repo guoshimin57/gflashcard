@@ -1,6 +1,6 @@
 /* *************************************************************************
  *     gflashcard.c：抽認卡程序。
- *     版權 (C) 2020-2024 gsm <406643764@qq.com>
+ *     版權 (C) 2024 gsm <406643764@qq.com>
  *     本程序為自由軟件：你可以依據自由軟件基金會所發布的第三版或更高版本的
  * GNU通用公共許可證重新發布、修改本程序。
  *     雖然基于使用目的而發布本程序，但不負任何擔保責任，亦不包含適銷性或特
@@ -30,7 +30,7 @@ typedef struct flashcard_tag // 抽認卡記錄
     char *answer; // 標準答案
     int nquiz; // 復習次數
     int n_contin_right; // 連續答對次數
-    double right_rate; // 答題正確率
+    double right_rate; // 答題正確率（單位：%）
     time_t prev_time; // 上一次復習時間
     time_t next_time; // 下一次復習時間
     struct flashcard_tag *next; // 下一個抽認卡記錄
@@ -42,7 +42,9 @@ void set_signal(void);
 Flashcard *load_flashcard(const char *filename);
 FILE *Fopen(const char *filename, const char *mode);
 Flashcard *create_flashcard(void);
+bool has_flashcard(Flashcard *list);
 void add_flashcard(Flashcard *node, Flashcard *list);
+bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2);
 char *cat_string(char *dst, const char *src);
 void load_info(Flashcard *fc, const char *input);
 void fix_flashcard(Flashcard *fc);
@@ -119,7 +121,7 @@ Flashcard *load_flashcard(const char *filename)
 
     while(fgets(line, LINE_MAX, fp))
     {
-        if(line[0]=='#' && list->next==NULL)
+        if(line[0]=='#' && !has_flashcard(list))
             list->comment=cat_string(list->comment, line);
         else if(line[0]=='>' && line[1]=='>')
             fc=create_flashcard(); 
@@ -158,33 +160,76 @@ Flashcard *create_flashcard(void)
     Flashcard *fc=malloc(sizeof(Flashcard));
     fc->comment=fc->question=fc->answer=NULL;
     fc->nquiz=fc->n_contin_right=0;
-    fc->right_rate=0;
+    fc->right_rate=0.0;
     fc->prev_time=fc->next_time=0;
     fc->next=NULL;
 
     return fc;
 }
 
+void free_flashcards(Flashcard *list)
+{
+    for(Flashcard *p=list->next, *next=NULL; p; p=next)
+    {
+        next=p->next;
+        del_flashcard(p, list);
+        free_flashcard(p);
+    }
+    free_flashcard(list);
+}
+
+void free_flashcard(Flashcard *node)
+{
+    free(node->comment);
+    free(node->question);
+    free(node->answer);
+    free(node);
+}
+
 void add_flashcard(Flashcard *node, Flashcard *list)
 {
     Flashcard *p=NULL, *prev=NULL;
 
-    if(node->next_time > time(NULL))
-        for(p=list->next, prev=list; p; prev=p, p=p->next)
-            if(node->next_time > p->next_time)
-                { prev->next=node, node->next=p; return; }
-
     for(p=list->next, prev=list; p; prev=p, p=p->next)
-        if(node->n_contin_right < p->n_contin_right)
-            { prev->next=node, node->next=p; return; }
+        if(is_front_flashcard(node, p))
+            break;
 
-    for(p=list->next, prev=list; p; prev=p, p=p->next)
-        if(node->right_rate < p->right_rate)
-            { prev->next=node, node->next=p; return; }
+    prev->next=node, node->next=p;
+}
 
-    for(p=list->next, prev=list; p; prev=p, p=p->next)
-        ;
-    prev->next=node, node->next=NULL;
+void del_flashcard(Flashcard *node, Flashcard *list)
+{
+    for(Flashcard *p=list->next, *prev=list; p; prev=p, p=p->next)
+        if(p == node)
+            { prev->next=p->next; return; }
+}
+
+void sort_flashcard(Flashcard *list)
+{
+    if(!has_flashcard(list))
+        return;
+
+    Flashcard *next=NULL, *head=create_flashcard();
+    for(Flashcard *p=list->next; p; p=next)
+    {
+        next=p->next;
+        del_flashcard(p, list);
+        add_flashcard(p, head);
+    }
+    list->next=head->next;
+    free_flashcard(head);
+}
+
+bool has_flashcard(Flashcard *list)
+{
+    return list && list->next;
+}
+
+bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2)
+{
+    return fc1->next_time < fc2->next_time
+        || fc1->n_contin_right < fc2->n_contin_right
+        || fc1->right_rate < fc2->right_rate;
 }
 
 char *cat_string(char *dst, const char *src)
@@ -199,7 +244,6 @@ char *cat_string(char *dst, const char *src)
 void load_info(Flashcard *fc, const char *input)
 {
     sscanf(input, "%d %d %lf", &fc->nquiz, &fc->n_contin_right, &fc->right_rate);
-    fc->right_rate /= 100.0;
     fc->prev_time=time(NULL);
 }
 
@@ -225,6 +269,12 @@ void fix_flashcard(Flashcard *fc)
 
 void quiz(Flashcard *list)
 {
+    if(!has_flashcard(list))
+    {
+        free_flashcard(list);
+        die(_("數據文件不包含有效的抽認卡記錄！\n"));
+    }
+
     for(Flashcard *p=list->next; p; p=p->next)
     {
         show_question(p->question);
@@ -275,15 +325,18 @@ bool judge_answer(void)
 
 void eval_answer(Flashcard *fc, bool right)
 {
-    fc->nquiz++;
+    double rate=fc->right_rate, n=fc->nquiz;
+
     if(right)
-        fc->n_contin_right++, fc->right_rate+=1.0/fc->nquiz;
+        fc->n_contin_right++, fc->right_rate=(rate*n+100)/(n+1);
+    else if(fc->right_rate > 0)
+        fc->n_contin_right=0, fc->right_rate=(rate*n-100)/(n+1);
     else
-        fc->n_contin_right=0, fc->right_rate-=1.0/fc->nquiz;
-    if(fc->right_rate < 0)
         fc->right_rate=0;
-    printf(_("共復習%d次，連續答對%d次， 正確率爲%g%%。\n\n"),
-        fc->nquiz, fc->n_contin_right, fc->right_rate*100);
+    fc->nquiz++;
+
+    printf(_("共復習%d次，連續答對%d次， 正確率爲%.0lf%%。\n\n"),
+        fc->nquiz, fc->n_contin_right, fc->right_rate);
 }
 
 void exec_cmd(char *cmd)
@@ -336,32 +389,6 @@ void quit(void)
     exit(EXIT_SUCCESS);
 }
 
-void free_flashcards(Flashcard *list)
-{
-    for(Flashcard *p=list->next, *next=NULL; p; p=next)
-    {
-        next=p->next;
-        del_flashcard(p, list);
-        free_flashcard(p);
-    }
-    free_flashcard(list);
-}
-
-void free_flashcard(Flashcard *node)
-{
-    free(node->comment);
-    free(node->question);
-    free(node->answer);
-    free(node);
-}
-
-void del_flashcard(Flashcard *node, Flashcard *list)
-{
-    for(Flashcard *p=list->next, *prev=list; p; prev=p, p=p->next)
-        if(p == node)
-            { prev->next=p->next; return; }
-}
-
 void update_data_file(Flashcard *list, const char *data_file)
 {
     FILE *fp=Fopen(data_file, "w");
@@ -384,13 +411,6 @@ void update_data_file(Flashcard *list, const char *data_file)
     }
 
     fclose(fp);
-}
-
-void sort_flashcard(Flashcard *list)
-{
-    for(Flashcard *p=list->next; p; p=p->next)
-        del_flashcard(p, list),
-        add_flashcard(p, list);
 }
 
 void show_template(void)
