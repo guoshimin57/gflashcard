@@ -225,14 +225,12 @@ void fix_flashcard(Flashcard *fc)
 
 void quiz(Flashcard *list)
 {
-    clear_screen();
     for(Flashcard *p=list->next; p; p=p->next)
     {
         show_question(p->question);
         input_question();
         show_answer(p->answer);
         eval_answer(p, judge_answer());
-        clear_screen();
     }
 }
 
