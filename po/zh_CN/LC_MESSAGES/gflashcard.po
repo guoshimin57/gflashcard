@@ -20,40 +20,40 @@ msgstr ""
 #: gflashcard.c:98
 #, c-format
 msgid "用法：%s <數據文件名>\n"
-msgstr ""
+msgstr "用法：%s <数据文件名>\n"
 
 #: gflashcard.c:99
 msgid "數據文件格式如下："
-msgstr ""
+msgstr "数据文件格式如下："
 
 #: gflashcard.c:107
 msgid "不能安裝SIGINT信號處理函數"
-msgstr ""
+msgstr "不能安装SIGINT信号处理函数"
 
 #: gflashcard.c:109
 msgid "不能安裝SIGTERM信號處理函數"
-msgstr ""
+msgstr "不能安装SIGTERM信号处理函数"
 
 #: gflashcard.c:152
 #, c-format
 msgid "打開文件失敗：%s\n"
-msgstr ""
+msgstr "打开文件失败：%s\n"
 
 #: gflashcard.c:241
 msgid "問題："
-msgstr ""
+msgstr "问题："
 
 #: gflashcard.c:243
 msgid "請輸入答案（以獨立一行<<<結束）："
-msgstr ""
+msgstr "请输入答案（以独立一行<<<结束）："
 
 #: gflashcard.c:259
 msgid "答案："
-msgstr ""
+msgstr "答案："
 
 #: gflashcard.c:268
 msgid "是否正確？(正確按y/錯誤按n）"
-msgstr ""
+msgstr "是否正确？(正确按y/错误按n）"
 
 #: gflashcard.c:287
 #, c-format
@@ -61,6 +61,8 @@ msgid ""
 "共復習%d次，連續答對%d次， 正確率爲%g%%。\n"
 "\n"
 msgstr ""
+"共复习%d次，连续答对%d次， 正确率为%g%%。\n"
+"\n"
 
 #: gflashcard.c:400
 msgid "# XXX抽認卡記錄表"
