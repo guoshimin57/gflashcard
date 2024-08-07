@@ -11,7 +11,7 @@
 
 CC ?= gcc
 #DEBUG ?= -ggdb3 -fanalyzer -fno-omit-frame-pointer -fsanitize=address
-#DEBUG ?= -ggdb3
+DEBUG ?= -ggdb3
 # 若終端支持ANSI轉義序列，可通過在CFLAGS加入-DANSI_ESCAPE來支持
 # CFLAGS ?= -std=c99 -Wall -W -pedantic-errors $(DEBUG) -DANSI_ESCAPE
 CFLAGS ?= -std=c99 -Wall -W -pedantic-errors $(DEBUG)

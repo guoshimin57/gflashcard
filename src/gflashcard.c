@@ -19,8 +19,12 @@
 #include <locale.h>
 #include <libintl.h>
 
-#define _(s) gettext(s)
 #define LINE_MAX 1024
+
+/* 能形成長時記憶的最少連續答對次數。這個因人、問題復雜性而異 */
+#define N_LONG_TERM_MEMORY 10
+
+#define _(s) gettext(s)
 #define die(...) do{fprintf(stderr, __VA_ARGS__); exit(EXIT_FAILURE);}while(0)
 
 typedef struct flashcard_tag // 抽認卡記錄
@@ -28,7 +32,7 @@ typedef struct flashcard_tag // 抽認卡記錄
     char *comment; // 注釋內容
     char *question; // 問題
     char *answer; // 標準答案
-    int nquiz; // 復習次數
+    int nquiz; // 復習次數，當爲表頭時則爲復習題數
     int n_contin_right; // 連續答對次數
     double right_rate; // 答題正確率（單位：%）
     time_t prev_time; // 上一次復習時間
@@ -42,9 +46,14 @@ void set_signal(void);
 Flashcard *load_flashcard(const char *filename);
 FILE *Fopen(const char *filename, const char *mode);
 Flashcard *create_flashcard(void);
-bool has_flashcard(Flashcard *list);
-void add_flashcard(Flashcard *node, Flashcard *list);
-bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2);
+void free_flashcards(Flashcard *list);
+void free_flashcard(Flashcard *node);
+void add_flashcard(Flashcard *node, Flashcard *list, time_t cur_time);
+void del_flashcard(Flashcard *node, Flashcard *list);
+void sort_flashcard(Flashcard *list);
+bool has_flashcard(const Flashcard *list);
+bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2, bool cmp_time);
+bool is_long_term_memory(const Flashcard *fc);
 char *cat_string(char *dst, const char *src);
 void load_info(Flashcard *fc, const char *input);
 void fix_flashcard(Flashcard *fc);
@@ -54,16 +63,14 @@ void input_question(void);
 void show_answer(const char *answer);
 bool judge_answer(void);
 void eval_answer(Flashcard *fc, bool right);
+void update_statistics(Flashcard *fc, bool right);
+void show_statistics(const Flashcard *fc);
 void exec_cmd(char *cmd);
 char *trim_cmd(char *cmd);
 void clear_screen(void);
 void quit_for_signal(int signum);
 void quit(void);
-void free_flashcards(Flashcard *list);
-void free_flashcard(Flashcard *node);
-void del_flashcard(Flashcard *node, Flashcard *list);
-void update_data_file(Flashcard *list, const char *data_file);
-void sort_flashcard(Flashcard *list);
+void update_data_file(const Flashcard *list, const char *data_file);
 void show_template(void);
 void help(void);
 
@@ -118,6 +125,7 @@ Flashcard *load_flashcard(const char *filename)
     FILE *fp=Fopen(filename, "r");
     Flashcard *fc=NULL;
     Flashcard *list=create_flashcard();
+    time_t cur_time=time(NULL);
 
     while(fgets(line, LINE_MAX, fp))
     {
@@ -134,7 +142,7 @@ Flashcard *load_flashcard(const char *filename)
         else if(line[0]=='S' && line[1]==':')
             stage=STATISTICS;
         else if(line[0]=='<' && line[1]=='<')
-            stage=IGNORE, fix_flashcard(fc), add_flashcard(fc, list);
+            stage=IGNORE, fix_flashcard(fc), add_flashcard(fc, list, cur_time);
         else if(stage == QUESTION)
             fc->question=cat_string(fc->question, line);
         else if(stage == ANSWER)
@@ -186,12 +194,13 @@ void free_flashcard(Flashcard *node)
     free(node);
 }
 
-void add_flashcard(Flashcard *node, Flashcard *list)
+void add_flashcard(Flashcard *node, Flashcard *list, time_t cur_time)
 {
     Flashcard *p=NULL, *prev=NULL;
+    bool cmp_time = (cur_time > node->next_time);
 
     for(p=list->next, prev=list; p; prev=p, p=p->next)
-        if(is_front_flashcard(node, p))
+        if(is_front_flashcard(node, p, cmp_time))
             break;
 
     prev->next=node, node->next=p;
@@ -209,27 +218,34 @@ void sort_flashcard(Flashcard *list)
     if(!has_flashcard(list))
         return;
 
+    time_t cur_time=time(NULL);
     Flashcard *next=NULL, *head=create_flashcard();
     for(Flashcard *p=list->next; p; p=next)
     {
         next=p->next;
         del_flashcard(p, list);
-        add_flashcard(p, head);
+        add_flashcard(p, head, cur_time);
     }
     list->next=head->next;
     free_flashcard(head);
 }
 
-bool has_flashcard(Flashcard *list)
+bool has_flashcard(const Flashcard *list)
 {
     return list && list->next;
 }
 
-bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2)
+bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2, bool cmp_time)
 {
-    return fc1->next_time < fc2->next_time
-        || fc1->n_contin_right < fc2->n_contin_right
+    return (cmp_time && (fc1->next_time < fc2->next_time))
+        || (!is_long_term_memory(fc1) && !is_long_term_memory(fc2)
+            && fc1->n_contin_right < fc2->n_contin_right)
         || fc1->right_rate < fc2->right_rate;
+}
+
+bool is_long_term_memory(const Flashcard *fc)
+{
+    return (fc->n_contin_right >= N_LONG_TERM_MEMORY);
 }
 
 char *cat_string(char *dst, const char *src)
@@ -275,12 +291,28 @@ void quiz(Flashcard *list)
         die(_("數據文件不包含有效的抽認卡記錄！\n"));
     }
 
+    bool right;
     for(Flashcard *p=list->next; p; p=p->next)
     {
+        if(is_long_term_memory(p))
+            continue;
         show_question(p->question);
         input_question();
         show_answer(p->answer);
-        eval_answer(p, judge_answer());
+        right=judge_answer();
+        eval_answer(p, right);
+        update_statistics(list, right);
+    }
+    puts(_("復習完成。"));
+    show_statistics(list);
+}
+
+void show_quiz_result(const Flashcard *list)
+{
+    for(Flashcard *p=list->next; p; p=p->next)
+    {
+        if(is_long_term_memory(p))
+            continue;
     }
 }
 
@@ -325,18 +357,35 @@ bool judge_answer(void)
 
 void eval_answer(Flashcard *fc, bool right)
 {
+    update_statistics(fc, right);
+    show_statistics(fc);
+}
+
+void update_statistics(Flashcard *fc, bool right)
+{
     double rate=fc->right_rate, n=fc->nquiz;
 
+    fc->nquiz++;
+    fc->n_contin_right = right ? fc->n_contin_right+1 : 0;
+
     if(right)
-        fc->n_contin_right++, fc->right_rate=(rate*n+100)/(n+1);
-    else if(fc->right_rate > 0)
-        fc->n_contin_right=0, fc->right_rate=(rate*n-100)/(n+1);
+        fc->right_rate=(rate*n+100)/(n+1);
+    else if(rate > 0)
+        fc->right_rate=(rate*n-100)/(n+1);
     else
         fc->right_rate=0;
-    fc->nquiz++;
+}
 
-    printf(_("共復習%d次，連續答對%d次， 正確率爲%.0lf%%。\n\n"),
-        fc->nquiz, fc->n_contin_right, fc->right_rate);
+void show_statistics(const Flashcard *fc)
+{
+    bool is_head=fc->question;
+
+    if(is_head)
+        printf(_("共復習%d題，正確率爲%.0lf%%。\n\n"),
+            fc->nquiz, fc->right_rate);
+    else
+        printf(_("共復習%d次，連續答對%d次，正確率爲%.0lf%%。\n\n"),
+            fc->nquiz, fc->n_contin_right, fc->right_rate);
 }
 
 void exec_cmd(char *cmd)
@@ -384,16 +433,16 @@ void quit_for_signal(int signum)
 
 void quit(void)
 {
+    sort_flashcard(flashcards);
     update_data_file(flashcards, data_file);
     free_flashcards(flashcards);
     exit(EXIT_SUCCESS);
 }
 
-void update_data_file(Flashcard *list, const char *data_file)
+void update_data_file(const Flashcard *list, const char *data_file)
 {
     FILE *fp=Fopen(data_file, "w");
 
-    sort_flashcard(list);
     fputs(list->comment, fp);
     for(Flashcard *p=list->next; p; p=p->next)
     {
