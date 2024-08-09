@@ -6,9 +6,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gflashcard 0.1.4\n"
+"Project-Id-Version: gflashcard 0.1.5\n"
 "Report-Msgid-Bugs-To: 406643764@qq.com\n"
-"POT-Creation-Date: 2024-08-07 11:12+0800\n"
+"POT-Creation-Date: 2024-08-09 12:33+0800\n"
 "PO-Revision-Date: 2024-08-06 13:33+0800\n"
 "Last-Translator: gsm <406643764@qq.com>\n"
 "Language-Team: Chinese (simplified)\n"
@@ -17,53 +17,53 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gflashcard.c:107
+#: gflashcard.c:113
 #, c-format
 msgid "用法：%s <數據文件名>\n"
 msgstr "用法：%s <数据文件名>\n"
 
-#: gflashcard.c:108
+#: gflashcard.c:114
 msgid "數據文件格式如下："
 msgstr "数据文件格式如下："
 
-#: gflashcard.c:116
+#: gflashcard.c:122
 msgid "不能安裝SIGINT信號處理函數"
 msgstr "不能安装SIGINT信号处理函数"
 
-#: gflashcard.c:118
+#: gflashcard.c:124
 msgid "不能安裝SIGTERM信號處理函數"
 msgstr "不能安装SIGTERM信号处理函数"
 
-#: gflashcard.c:162
+#: gflashcard.c:168
 #, c-format
 msgid "打開文件失敗：%s\n"
 msgstr "打开文件失败：%s\n"
 
-#: gflashcard.c:291
+#: gflashcard.c:304
 msgid "數據文件不包含有效的抽認卡記錄！\n"
 msgstr "数据文件不包含有效的抽认卡记录！\n"
 
-#: gflashcard.c:306
+#: gflashcard.c:319
 msgid "復習完成。"
 msgstr "复习完成。"
 
-#: gflashcard.c:321
+#: gflashcard.c:334
 msgid "問題："
 msgstr "问题："
 
-#: gflashcard.c:323
+#: gflashcard.c:336
 msgid "請輸入答案（以獨立一行<<<結束）："
 msgstr "请输入答案（以独立一行<<<结束）："
 
-#: gflashcard.c:339
+#: gflashcard.c:353
 msgid "答案："
 msgstr "答案："
 
-#: gflashcard.c:348
+#: gflashcard.c:363
 msgid "是否正確？(正確按y/錯誤按n）"
 msgstr "是否正确？(正确按y/错误按n）"
 
-#: gflashcard.c:384
+#: gflashcard.c:399
 msgid ""
 "共復習%d題，正確率爲%.0lf%%。\n"
 "\n"
@@ -71,7 +71,7 @@ msgstr ""
 "共复习%d题，正确率为%.0lf%%。\n"
 "\n"
 
-#: gflashcard.c:387
+#: gflashcard.c:402
 msgid ""
 "共復習%d次，連續答對%d次，正確率爲%.0lf%%。\n"
 "\n"
@@ -79,82 +79,98 @@ msgstr ""
 "共复习%d次，连续答对%d次， 正确率为%.0lf%%。\n"
 "\n"
 
-#: gflashcard.c:467
+#: gflashcard.c:433
+msgid "# 正在執行系統命令……"
+msgstr "# 正在执行系统命令……"
+
+#: gflashcard.c:436
+msgid "完畢。"
+msgstr "完毕。"
+
+#: gflashcard.c:541
 msgid "# XXX抽認卡記錄表"
 msgstr "# XXX抽认卡记录表"
 
-#: gflashcard.c:468
+#: gflashcard.c:542
 msgid "# 本文件由注釋(以#開頭的行均視爲注釋)、抽認卡記錄、空白行組成。"
 msgstr "# 本文件由注释(以#开头的行均视为注释)、抽认卡记录、空白行组成。"
 
-#: gflashcard.c:469
+#: gflashcard.c:543
 msgid "# 抽認卡記錄由記錄開始標記(>>)、注釋、空白行、問題開始標記(Q:)、"
 msgstr "# 抽认卡记录由记录开始标记(>>)、注释、空白行、问题开始标记(Q:)、"
 
-#: gflashcard.c:470
+#: gflashcard.c:544
 msgid "# 問題、答案開始標記(A:)、答案、統計信息、記錄結束標記(<<)組成。"
 msgstr "# 问题、答案开始标记(A:)、答案、统计信息、记录结束标记(<<)组成。"
 
-#: gflashcard.c:471
+#: gflashcard.c:545
 msgid "# 其中注釋、空白行是可選的。注釋以#開頭。問題、答案、統計信息"
 msgstr "# 其中注释、空白行是可选的。注释以#开头。问题、答案、统计信息"
 
-#: gflashcard.c:472
+#: gflashcard.c:546
 msgid "# 以制表符開頭。統計信息依次表示復習次數、連續答對次數、正確率、"
 msgstr "# 以制表符开头。统计信息依次表示复习次数、连续答对次数、正确率、"
 
-#: gflashcard.c:473
+#: gflashcard.c:547
 msgid "# 經編碼的上次復習時間和下次復習時間。各統計信息項是可選的，但"
 msgstr "# 经编码的上次上次复习时间和下次复习时间。各统计信息项是可选的，但"
 
-#: gflashcard.c:474
+#: gflashcard.c:548
 msgid "# 只能由後向前依次省略，其中後兩者不應手動錄入。程序更新本表時"
 msgstr "# 只能由后向前依次省略，其中后两者不应手动录入。程序更新本表时"
 
-#: gflashcard.c:475
+#: gflashcard.c:549
 msgid "# 會有選擇地保留注釋，包括：頭部注釋、抽認卡記錄內部注釋。"
 msgstr "# 会有选择地保留注释，包括：头部注释、抽认卡记录內部注释。"
 
-#: gflashcard.c:480
+#: gflashcard.c:550
+msgid "# 問題或答案的內部，以“:”開頭的行，將視爲命令行。"
+msgstr "# 问题或答案的內部，以“:”开头的行，将视为命令行。"
+
+#: gflashcard.c:555
 msgid "    具體問題"
 msgstr "    具体问题"
 
-#: gflashcard.c:482
+#: gflashcard.c:557
 msgid "    具體答案"
 msgstr "    具体答案"
 
-#: gflashcard.c:484
+#: gflashcard.c:559
 msgid "    [復習次數] [連續答對次數] [正確率] [上次復習時間] [下次復習時間]"
 msgstr "    [复习次数] [连续答对次数] [正确率] [上次复习时间] [下次复习时间]"
 
-#: gflashcard.c:487
+#: gflashcard.c:562
 msgid "[其他抽認卡記錄]"
 msgstr "[其他抽认卡记录]"
 
-#: gflashcard.c:492
+#: gflashcard.c:567
 msgid "    在任何時刻，執行help命令均能顯示本幫助信息。"
 msgstr "    在任何时刻，执行help命令均能显示本帮助信息。"
 
-#: gflashcard.c:493
+#: gflashcard.c:568
 msgid "執行某個命令的意思是輸入命令名並按Enter鍵。"
 msgstr "执行某个命令的意思是输入命令名并按Enter键。"
 
-#: gflashcard.c:494
+#: gflashcard.c:569
 msgid "目前支持的命令有："
 msgstr "目前支持的命令有："
 
-#: gflashcard.c:495
+#: gflashcard.c:570
 msgid "    help      顯示本幫助信息。"
 msgstr "    help      显示本帮助信息。"
 
-#: gflashcard.c:496
+#: gflashcard.c:571
 msgid "    quit      退出本程序。"
 msgstr "    quit      退出本程序。"
 
-#: gflashcard.c:497
+#: gflashcard.c:572
 msgid "    temp      顯示數據文件模板。"
 msgstr "    temp      显示数据文件模板。"
 
-#: gflashcard.c:498
+#: gflashcard.c:573
 msgid "    clear     清屏。"
 msgstr "    clear     清屏。"
+
+#: gflashcard.c:580 gflashcard.c:588
+msgid "錯誤：內存不足！"
+msgstr "错误：内存不足！"

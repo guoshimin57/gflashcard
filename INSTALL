@@ -12,16 +12,18 @@
 一、安裝準備：
     1. 此程序依賴C標準庫。必須安裝它們才能編譯此程序。
     2. 國際化與本地化功能依賴於gettext。強烈建議安裝它。
+    3. 若終端不支持ANSI轉義序列，可刪除Makefile中CFLAGS的-DANSI_ESCAPE，若不存
+       在fork和execl系統調用，則刪除-DHAVE_FORK和-DHAVE_EXECL。
 
 二、安裝此程序的步驟為：
-    1. cd gflashcard；
+    1. cd gflashcard。
     2. make；若要帶調試信息編譯此程序，應設置DEBUG，譬如：DEBUG="-ggdb3" make。
     3. make install，把程序安裝到標準目錄；若要安裝到其他目錄，可以設置prefix
        ，譬如：make prefix=/usr/local install；若你想安裝不帶調試信息的程序，
        請用make install-strip；你可能需要root權限來執行這一步。
 
 三、卸載此程序的步驟為：
-    1. cd gflashcard；
+    1. cd gflashcard。
     2. make clean，刪除編譯生成的目標文件、此程序的二進制文件以及一些備份文件
-       ，但這一步不是必須的；
+       ，但這一步不是必須的。
     3. make uninstall，卸載此程序，你可能需要root權限來執行這一步。

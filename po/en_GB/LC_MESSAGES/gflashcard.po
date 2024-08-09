@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gflashcard 0.1.4\n"
+"Project-Id-Version: gflashcard 0.1.5\n"
 "Report-Msgid-Bugs-To: 406643764@qq.com\n"
-"POT-Creation-Date: 2024-08-07 11:15+0800\n"
+"POT-Creation-Date: 2024-08-09 12:34+0800\n"
 "PO-Revision-Date: 2024-08-06 12:09+0800\n"
 "Last-Translator: gsm <406643764@qq.com>\n"
 "Language-Team: English (British)\n"
@@ -17,53 +17,53 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: gflashcard.c:107
+#: gflashcard.c:113
 #, c-format
 msgid "用法：%s <數據文件名>\n"
 msgstr "usage：%s <data file name>\n"
 
-#: gflashcard.c:108
+#: gflashcard.c:114
 msgid "數據文件格式如下："
 msgstr "data file format as follow："
 
-#: gflashcard.c:116
+#: gflashcard.c:122
 msgid "不能安裝SIGINT信號處理函數"
 msgstr "Cannot install SIGINT signal processing function"
 
-#: gflashcard.c:118
+#: gflashcard.c:124
 msgid "不能安裝SIGTERM信號處理函數"
 msgstr "Cannot install SIGTERM signal processing function"
 
-#: gflashcard.c:162
+#: gflashcard.c:168
 #, c-format
 msgid "打開文件失敗：%s\n"
 msgstr "Failed to open file：%s\n"
 
-#: gflashcard.c:291
+#: gflashcard.c:304
 msgid "數據文件不包含有效的抽認卡記錄！\n"
 msgstr "Data file is not include valid flashcard record!\n"
 
-#: gflashcard.c:306
+#: gflashcard.c:319
 msgid "復習完成。"
 msgstr "Quiz finished."
 
-#: gflashcard.c:321
+#: gflashcard.c:334
 msgid "問題："
 msgstr "Question："
 
-#: gflashcard.c:323
+#: gflashcard.c:336
 msgid "請輸入答案（以獨立一行<<<結束）："
 msgstr "please input answer (Ends with a separate line <<<):"
 
-#: gflashcard.c:339
+#: gflashcard.c:353
 msgid "答案："
 msgstr "Answer"
 
-#: gflashcard.c:348
+#: gflashcard.c:363
 msgid "是否正確？(正確按y/錯誤按n）"
 msgstr "Is it correct? (correct press y / wrong press n)"
 
-#: gflashcard.c:384
+#: gflashcard.c:399
 msgid ""
 "共復習%d題，正確率爲%.0lf%%。\n"
 "\n"
@@ -71,7 +71,7 @@ msgstr ""
 "totally quiz %d question, correct rate is %.0lf%%.\n"
 "\n"
 
-#: gflashcard.c:387
+#: gflashcard.c:402
 msgid ""
 "共復習%d次，連續答對%d次，正確率爲%.0lf%%。\n"
 "\n"
@@ -79,82 +79,98 @@ msgstr ""
 "totally quiz %d times, continuous correct answer %d times, correct rate is %.0lf%%.\n"
 "\n"
 
-#: gflashcard.c:467
+#: gflashcard.c:433
+msgid "# 正在執行系統命令……"
+msgstr "Running system command..."
+
+#: gflashcard.c:436
+msgid "完畢。"
+msgstr "finished."
+
+#: gflashcard.c:541
 msgid "# XXX抽認卡記錄表"
 msgstr "# XXX flashcard record table"
 
-#: gflashcard.c:468
+#: gflashcard.c:542
 msgid "# 本文件由注釋(以#開頭的行均視爲注釋)、抽認卡記錄、空白行組成。"
 msgstr "# This file consists of commemts(lines starting with # are considered comments), flashcard records, blank lines."
 
-#: gflashcard.c:469
+#: gflashcard.c:543
 msgid "# 抽認卡記錄由記錄開始標記(>>)、注釋、空白行、問題開始標記(Q:)、"
 msgstr "# Flashcard records consists of record start mark(>>), comments, blank lines, question start mark (Q:),"
 
-#: gflashcard.c:470
+#: gflashcard.c:544
 msgid "# 問題、答案開始標記(A:)、答案、統計信息、記錄結束標記(<<)組成。"
 msgstr "# question, answer start mark (A:), answer, statistics, record end mark (<<)."
 
-#: gflashcard.c:471
+#: gflashcard.c:545
 msgid "# 其中注釋、空白行是可選的。注釋以#開頭。問題、答案、統計信息"
 msgstr "# Comments, blank lines are optional. Comments start with #. Questions, Answers, Statistics"
 
-#: gflashcard.c:472
+#: gflashcard.c:546
 msgid "# 以制表符開頭。統計信息依次表示復習次數、連續答對次數、正確率、"
 msgstr "# start with a tab. The statistics indicate the number of revisions, the number of consecutive correct answers, and the correct rate,"
 
-#: gflashcard.c:473
+#: gflashcard.c:547
 msgid "# 經編碼的上次復習時間和下次復習時間。各統計信息項是可選的，但"
 msgstr "# The coded last quiz time and next quiz time. Each statistic item is optional, though"
 
-#: gflashcard.c:474
+#: gflashcard.c:548
 msgid "# 只能由後向前依次省略，其中後兩者不應手動錄入。程序更新本表時"
 msgstr "# It can only be omitted from back to front, where the latter two should not be entered manually. When the program updates this table"
 
-#: gflashcard.c:475
+#: gflashcard.c:549
 msgid "# 會有選擇地保留注釋，包括：頭部注釋、抽認卡記錄內部注釋。"
 msgstr "# will selectively retain comments, including: header comments, flashcard record internal comments."
 
-#: gflashcard.c:480
+#: gflashcard.c:550
+msgid "# 問題或答案的內部，以“:”開頭的行，將視爲命令行。"
+msgstr "Inside the question or answer, lines that begin with \":\" will be considered command lines."
+
+#: gflashcard.c:555
 msgid "    具體問題"
 msgstr "    Specific question"
 
-#: gflashcard.c:482
+#: gflashcard.c:557
 msgid "    具體答案"
 msgstr "    Specific answer"
 
-#: gflashcard.c:484
+#: gflashcard.c:559
 msgid "    [復習次數] [連續答對次數] [正確率] [上次復習時間] [下次復習時間]"
 msgstr "    [quiz times] [consecutive correct times] [correct rate] [last quiz time] [next quiz time]"
 
-#: gflashcard.c:487
+#: gflashcard.c:562
 msgid "[其他抽認卡記錄]"
 msgstr "[other flashcard record]"
 
-#: gflashcard.c:492
+#: gflashcard.c:567
 msgid "    在任何時刻，執行help命令均能顯示本幫助信息。"
 msgstr "    At any time, executing the help command will display this help message."
 
-#: gflashcard.c:493
+#: gflashcard.c:568
 msgid "執行某個命令的意思是輸入命令名並按Enter鍵。"
 msgstr "To execute a command means typing the command name and pressing Enter."
 
-#: gflashcard.c:494
+#: gflashcard.c:569
 msgid "目前支持的命令有："
 msgstr "The currently supported commands are:"
 
-#: gflashcard.c:495
+#: gflashcard.c:570
 msgid "    help      顯示本幫助信息。"
 msgstr "    help      Display this help message。"
 
-#: gflashcard.c:496
+#: gflashcard.c:571
 msgid "    quit      退出本程序。"
 msgstr "    quit      Exit this program."
 
-#: gflashcard.c:497
+#: gflashcard.c:572
 msgid "    temp      顯示數據文件模板。"
 msgstr "    temp      Display data file template."
 
-#: gflashcard.c:498
+#: gflashcard.c:573
 msgid "    clear     清屏。"
 msgstr "    clear     Clear screen."
+
+#: gflashcard.c:580 gflashcard.c:588
+msgid "錯誤：內存不足！"
+msgstr ""

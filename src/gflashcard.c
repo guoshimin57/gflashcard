@@ -26,6 +26,7 @@
 
 #define _(s) gettext(s)
 #define die(...) do{fprintf(stderr, __VA_ARGS__); exit(EXIT_FAILURE);}while(0)
+#define Free(p) (free(p), (p)=NULL)
 
 typedef struct flashcard_tag // 抽認卡記錄
 {
@@ -65,6 +66,9 @@ bool judge_answer(void);
 void eval_answer(Flashcard *fc, bool right);
 void update_statistics(Flashcard *fc, bool right);
 void show_statistics(const Flashcard *fc);
+void get_sys_cmd_and_exec(const char *s);
+int exec_sys_cmd(const char *cmd);
+char *get_sys_cmd(const char *s);
 void exec_cmd(char *cmd);
 char *trim_cmd(char *cmd);
 void clear_screen(void);
@@ -73,6 +77,7 @@ void quit(void);
 void update_data_file(const Flashcard *list, const char *data_file);
 void show_template(void);
 void help(void);
+void *Malloc(size_t size);
 
 /* 以下使用全局變量的目的僅是爲了在程序異常退出時可以釋放資源 */
 Flashcard *flashcards=NULL;
@@ -85,6 +90,7 @@ int main(int argc, char **argv)
         usage(argv[0]);
     data_file=argv[1];
     set_signal();
+    atexit(quit);
     flashcards=load_flashcard(data_file);
     quiz(flashcards);
 
@@ -165,7 +171,7 @@ FILE *Fopen(const char *filename, const char *mode)
 
 Flashcard *create_flashcard(void)
 {
-    Flashcard *fc=malloc(sizeof(Flashcard));
+    Flashcard *fc=Malloc(sizeof(Flashcard));
     fc->comment=fc->question=fc->answer=NULL;
     fc->nquiz=fc->n_contin_right=0;
     fc->right_rate=0.0;
@@ -188,10 +194,10 @@ void free_flashcards(Flashcard *list)
 
 void free_flashcard(Flashcard *node)
 {
-    free(node->comment);
-    free(node->question);
-    free(node->answer);
-    free(node);
+    Free(node->comment);
+    Free(node->question);
+    Free(node->answer);
+    Free(node);
 }
 
 void add_flashcard(Flashcard *node, Flashcard *list, time_t cur_time)
@@ -215,9 +221,6 @@ void del_flashcard(Flashcard *node, Flashcard *list)
 
 void sort_flashcard(Flashcard *list)
 {
-    if(!has_flashcard(list))
-        return;
-
     time_t cur_time=time(NULL);
     Flashcard *next=NULL, *head=create_flashcard();
     for(Flashcard *p=list->next; p; p=next)
@@ -237,10 +240,20 @@ bool has_flashcard(const Flashcard *list)
 
 bool is_front_flashcard(const Flashcard *fc1, const Flashcard *fc2, bool cmp_time)
 {
-    return (cmp_time && (fc1->next_time < fc2->next_time))
-        || (!is_long_term_memory(fc1) && !is_long_term_memory(fc2)
-            && fc1->n_contin_right < fc2->n_contin_right)
-        || fc1->right_rate < fc2->right_rate;
+    if(is_long_term_memory(fc1))
+        return false;
+    else if(cmp_time && (fc1->next_time < fc2->next_time))
+        return true;
+    else if(cmp_time && (fc1->next_time > fc2->next_time))
+        return false;
+    else if(fc1->n_contin_right < fc2->n_contin_right)
+        return true;
+    else if(fc1->n_contin_right > fc2->n_contin_right)
+        return false;
+    else if(fc1->right_rate < fc2->right_rate)
+        return true;
+    else
+        return false;
 }
 
 bool is_long_term_memory(const Flashcard *fc)
@@ -253,7 +266,7 @@ char *cat_string(char *dst, const char *src)
     if(dst)
         dst=realloc(dst, strlen(dst)+strlen(src)+1);
     else
-        dst=malloc(strlen(src)+1), dst[0]='\0';
+        dst=Malloc(strlen(src)+1), dst[0]='\0';
     return strcat(dst, src);
 }
 
@@ -321,6 +334,7 @@ void show_question(const char *question)
     puts(_("問題："));
     printf("%s", question);
     puts(_("請輸入答案（以獨立一行<<<結束）："));
+    get_sys_cmd_and_exec(question);
 }
 
 void input_question(void)
@@ -338,6 +352,7 @@ void show_answer(const char *answer)
 {
     puts(_("答案："));
     printf("%s", answer);
+    get_sys_cmd_and_exec(answer);
 }
 
 bool judge_answer(void)
@@ -388,6 +403,61 @@ void show_statistics(const Flashcard *fc)
             fc->nquiz, fc->n_contin_right, fc->right_rate);
 }
 
+void get_sys_cmd_and_exec(const char *s)
+{
+    char *cmd=get_sys_cmd(s);
+    if(cmd)
+    {
+        exec_sys_cmd(cmd);
+        Free(cmd);
+    }
+}
+
+int exec_sys_cmd(const char *cmd)
+{
+#if HAVE_FORK && HAVE_EXECL
+#include <unistd.h>
+#include <sys/types.h>
+    pid_t pid=fork();
+    if(pid == -1)
+        return EXIT_FAILURE;
+    else if(pid == 0)
+    {
+        execl("/bin/sh", "sh", "-c", cmd, NULL);
+        exit(EXIT_FAILURE);
+    }
+    return EXIT_SUCCESS;
+#else
+    if(!system(NULL))
+        return EXIT_FAILURE;
+    printf(_("# 正在執行系統命令……"));
+    fflush(stdout); // 因爲上邊的語言沒有'\n'
+    int ret=system(cmd);
+    puts(_("完畢。"));
+    return ret;
+#endif
+}
+
+char *get_sys_cmd(const char *s)
+{
+    int n=strlen(s)+1;
+    char *cmd=Malloc(n), *c=cmd;
+
+    memset(cmd, '\0', n);
+
+    // 以:開頭行均視爲命令行
+    for(const char *start=NULL, *p=s; *p; p++)
+        if( (p==s && *p==':' && *(start=p+1))
+            || (*p=='\n' && *(p+1)==':' && *(start=p+2)) )
+            for(const char *q=start; *q && *q!='\n'; c++, q++)
+               *c=*q; 
+
+    if(cmd[0] == '\0')
+        Free(cmd);
+
+    return cmd;
+}
+
 void exec_cmd(char *cmd)
 {
     trim_cmd(cmd);
@@ -395,7 +465,7 @@ void exec_cmd(char *cmd)
     if(strcmp(cmd, "help\n") == 0)
         help();
     else if(strcmp(cmd, "quit\n") == 0)
-        quit();
+        exit(EXIT_SUCCESS);
     else if(strcmp(cmd, "temp\n") == 0)
         show_template();
     else if(strcmp(cmd, "clear\n") == 0)
@@ -433,9 +503,13 @@ void quit_for_signal(int signum)
 
 void quit(void)
 {
-    sort_flashcard(flashcards);
-    update_data_file(flashcards, data_file);
-    free_flashcards(flashcards);
+    if(has_flashcard(flashcards))
+    {
+        sort_flashcard(flashcards);
+        update_data_file(flashcards, data_file);
+    }
+    if(flashcards)
+        free_flashcards(flashcards);
     exit(EXIT_SUCCESS);
 }
 
@@ -473,6 +547,7 @@ void show_template(void)
     puts(_("# 經編碼的上次復習時間和下次復習時間。各統計信息項是可選的，但"));
     puts(_("# 只能由後向前依次省略，其中後兩者不應手動錄入。程序更新本表時"));
     puts(_("# 會有選擇地保留注釋，包括：頭部注釋、抽認卡記錄內部注釋。"));
+    puts(_("# 問題或答案的內部，以“:”開頭的行，將視爲命令行。"));
     puts("");
     puts(">>");
     puts("[# 注釋]");
@@ -496,4 +571,20 @@ void help(void)
     puts(_("    quit      退出本程序。"));
     puts(_("    temp      顯示數據文件模板。"));
     puts(_("    clear     清屏。"));
+}
+
+void *Malloc(size_t size)
+{
+    void *p=malloc(size);
+    if(p == NULL)
+        die(_("錯誤：內存不足！"));
+    return p;
+}
+
+void *Realloc(void *ptr, size_t size)
+{
+    void *p=realloc(ptr, size);
+    if(ptr == p)
+        die(_("錯誤：內存不足！"));
+    return p;
 }
