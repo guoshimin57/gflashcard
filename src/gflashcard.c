@@ -72,7 +72,6 @@ char *get_sys_cmd(const char *s);
 void exec_cmd(char *cmd);
 char *trim_cmd(char *cmd);
 void clear_screen(void);
-void quit_for_signal(int signum);
 void quit(void);
 void update_data_file(const Flashcard *list, const char *data_file);
 void show_template(void);
@@ -118,9 +117,9 @@ void usage(const char *program)
 
 void set_signal(void)
 {
-	if(signal(SIGINT, quit_for_signal) == SIG_ERR)
+	if(signal(SIGINT, exit) == SIG_ERR)
         perror(_("不能安裝SIGINT信號處理函數"));
-	if(signal(SIGTERM, quit_for_signal) == SIG_ERR)
+	if(signal(SIGTERM, exit) == SIG_ERR)
         perror(_("不能安裝SIGTERM信號處理函數"));
 }
 
@@ -493,12 +492,6 @@ void clear_screen(void)
     for(int i=0; i<100; i++)
         puts("");
 #endif
-}
-
-void quit_for_signal(int signum)
-{
-    (void)signum;
-    quit();
 }
 
 void quit(void)
